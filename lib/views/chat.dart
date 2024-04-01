@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:websocket_echo/model/message.dart';
 import 'package:websocket_echo/model/message_model.dart';
-import 'package:websocket_echo/views/components/chat_message.dart';
+import 'package:websocket_echo/views/components/chat_wall.dart';
 
 class ChatView extends StatefulWidget {
   const ChatView({super.key});
@@ -12,8 +13,6 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  final MessageModel _chat = MessageModel();
-
   final TextEditingController _controller =  TextEditingController();
 
   final channel = WebSocketChannel.connect(
@@ -22,22 +21,22 @@ class _ChatViewState extends State<ChatView> {
 
   void sendMessage() {
     String text = _controller.text.trim();
-
     if (text.isEmpty) return;
 
-    _chat.addMessage(Message(text, MessageSource.sent));
-    _controller.clear();
+    final MessageModel model = context.read<MessageModel>();
+    model.addMessage(Message(text, MessageSource.sent));
     
     channel.sink.add(text);
 
-    setState(() {});
+    _controller.clear();
   }
 
   @override
   void initState() {
     super.initState();
     channel.stream.listen((event) {
-      _chat.addMessage(Message(event, MessageSource.received));
+      final MessageModel model = context.read<MessageModel>();
+      model.addMessage(Message(event, MessageSource.received));
       setState(() {});
     });
   }
@@ -56,39 +55,7 @@ class _ChatViewState extends State<ChatView> {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.max,
           children: [
-            Flexible(
-              child: Scrollbar(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: _chat.getMessages().map((message) {
-                      ChatMessageStyle messageStyle = message.source == MessageSource.sent 
-                        ? ChatMessageStyle.sentMessage 
-                        : ChatMessageStyle.receivedMessage;
-                        
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Align(
-                            alignment: messageStyle.alignment,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 3/4),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: messageStyle.backgroundColor,
-                                  borderRadius: BorderRadius.circular(18)
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(message.message, style: const TextStyle(fontSize: 16, color: Color(0xFFDDDDDD))),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                        }).toList()
-                  ),
-                ),
-              ),
-            ),
+            const MessageWall(),
             const SizedBox(height: 10),
             SizedBox(
               height: 50,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:websocket_echo/model/message_model.dart';
 import 'routes.dart';
 
 class FlutterEchoWebsocketApp extends StatelessWidget {
@@ -6,10 +8,15 @@ class FlutterEchoWebsocketApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
-      title: "Echo Websocket Demo",
+    return ChangeNotifierProvider(
+      create: (context) => MessageModel(),
+      builder: (context, child) {
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          routerConfig: router,
+          title: "Echo Websocket Demo",
+        );
+      }
     );
   }
 }
