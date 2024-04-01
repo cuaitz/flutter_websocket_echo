@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:websocket_echo/model/message.dart';
-import 'package:websocket_echo/model/message_chat.dart';
+import 'package:websocket_echo/model/message_model.dart';
 import 'package:websocket_echo/views/components/chat_message.dart';
 
 class ChatView extends StatefulWidget {
@@ -12,7 +12,7 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  final MessageChat _chat = MessageChat();
+  final MessageModel _chat = MessageModel();
 
   final TextEditingController _controller =  TextEditingController();
 
