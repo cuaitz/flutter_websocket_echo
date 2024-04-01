@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:websocket_echo/model/connection_model.dart';
 import 'package:websocket_echo/model/message.dart';
 import 'package:websocket_echo/model/message_model.dart';
 import 'package:websocket_echo/views/components/chat_wall.dart';
@@ -15,10 +16,6 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   final TextEditingController _controller =  TextEditingController();
 
-  final channel = WebSocketChannel.connect(
-    Uri.parse('wss://echo.websocket.events')
-  );
-
   void sendMessage() {
     String text = _controller.text.trim();
     if (text.isEmpty) return;
@@ -26,7 +23,7 @@ class _ChatViewState extends State<ChatView> {
     final MessageModel model = context.read<MessageModel>();
     model.addMessage(Message(text, MessageSource.sent));
     
-    channel.sink.add(text);
+    context.read<ConnectionModel>().getChannel().sink.add(text);
 
     _controller.clear();
   }
@@ -34,11 +31,23 @@ class _ChatViewState extends State<ChatView> {
   @override
   void initState() {
     super.initState();
+    final WebSocketChannel channel = context.read<ConnectionModel>().getChannel();
+    
     channel.stream.listen((event) {
       final MessageModel model = context.read<MessageModel>();
       model.addMessage(Message(event, MessageSource.received));
       setState(() {});
-    });
+    },
+    onDone: () {
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: const Text("Aviso"),
+          content: Text("Conexão encerrada\n\nCódigo:${channel.closeCode}\nMotivo:${channel.closeReason}"),
+
+        );
+      });
+    },);
+
   }
 
   @override
