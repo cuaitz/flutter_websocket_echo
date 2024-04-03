@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:websocket_echo/model/message.dart';
 
 class ChatMessageStyle {
@@ -33,9 +34,18 @@ class ChatMessage extends StatelessWidget {
               color: messageStyle.backgroundColor,
               borderRadius: BorderRadius.circular(18)
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(message.message, style: const TextStyle(fontSize: 16, color: Color(0xFFDDDDDD))),
+            child: Column(
+              crossAxisAlignment: messageStyle.alignment == Alignment.centerRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(message.message, style: const TextStyle(fontSize: 16, color: Color(0xFFDDDDDD))),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                  child: Text(DateFormat('HH:mm').format(message.date), style: const TextStyle(fontSize: 12, color: Color(0xFF707070))),
+                )
+              ],
             ),
           ),
         ),

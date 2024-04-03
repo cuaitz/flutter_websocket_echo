@@ -25,7 +25,7 @@ class _ChatViewState extends State<ChatView> {
     if (text.isEmpty) return;
 
     final MessageModel model = context.read<MessageModel>();
-    model.addMessage(Message(text, MessageSource.sent));
+    model.addMessage(Message(text, MessageSource.sent, DateTime.now()));
     
     context.read<ConnectionModel>().getChannel().sink.add(text);
 
@@ -44,7 +44,7 @@ class _ChatViewState extends State<ChatView> {
       if (!streamController.hasListener) {
         streamController.stream.listen((event) {
           final MessageModel model = context.read<MessageModel>();
-          model.addMessage(Message(event, MessageSource.received));
+          model.addMessage(Message(event, MessageSource.received, DateTime.now()));
           setState(() {});
         },
         onDone: () {
@@ -60,7 +60,7 @@ class _ChatViewState extends State<ChatView> {
         });
       }
     } catch (e) {
-      context.read<MessageModel>().addMessage(Message("[DEBUG] Erro: ${e.toString()}", MessageSource.received));
+      context.read<MessageModel>().addMessage(Message("[DEBUG] Erro: ${e.toString()}", MessageSource.received, DateTime.now()));
     }
   }
 
