@@ -12,8 +12,8 @@ class ConfigView extends StatefulWidget {
 }
 
 class _ConfigViewState extends State<ConfigView> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController _inputController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _inputController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -93,30 +93,31 @@ class _ConfigViewState extends State<ConfigView> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
                       Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
-                      await showDialog(context: context, builder: (context) {
-                        return AlertDialog(
+                      showDialog(context: context, builder: (context) {
+                        return const AlertDialog(
                           title: Text("Sucesso"),
                           content: Text("Alterações salvas com sucesso."),
                         );
+                      }).then((value) {
+                        GoRouter.of(context).pushReplacement(FEWRouter.chatView);
                       });
-                      GoRouter.of(context).pushReplacement(FEWRouter.chatView);
                     } catch (e) {
                       showDialog(context: context, builder: (context) {
                         return AlertDialog(
-                          title: Text("Erro"),
+                          title: const Text("Erro"),
                           content: Text("Erro ao salvar: ${e.toString()}"),
                         );
                       });
                     }
                   }
                 },
-                child: Text("Salvar"))
+                child: const Text("Salvar"))
             ],
           ),
         ),
