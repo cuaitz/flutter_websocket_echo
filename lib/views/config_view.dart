@@ -95,10 +95,17 @@ class _ConfigViewState extends State<ConfigView> {
               ),
               SizedBox(height: 10),
               ElevatedButton(
-                onPressed: (){
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
                       Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
+                      await showDialog(context: context, builder: (context) {
+                        return AlertDialog(
+                          title: Text("Sucesso"),
+                          content: Text("Alterações salvas com sucesso."),
+                        );
+                      });
+                      GoRouter.of(context).pushReplacement(FEWRouter.chatView);
                     } catch (e) {
                       showDialog(context: context, builder: (context) {
                         return AlertDialog(
