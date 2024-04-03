@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:websocket_echo/model/connection_model.dart';
 import 'package:websocket_echo/model/message.dart';
 import 'package:websocket_echo/model/message_model.dart';
+import 'package:websocket_echo/routes.dart';
 import 'package:websocket_echo/views/components/chat_wall.dart';
 
 class ChatView extends StatefulWidget {
@@ -31,23 +35,33 @@ class _ChatViewState extends State<ChatView> {
   @override
   void initState() {
     super.initState();
-    final WebSocketChannel channel = context.read<ConnectionModel>().getChannel();
-    
-    channel.stream.listen((event) {
-      final MessageModel model = context.read<MessageModel>();
-      model.addMessage(Message(event, MessageSource.received));
-      setState(() {});
-    },
-    onDone: () {
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: const Text("Aviso"),
-          content: Text("Conexão encerrada\n\nCódigo:${channel.closeCode}\nMotivo:${channel.closeReason}"),
+    try {
+      context.read<ConnectionModel>().connect();
+      final WebSocketChannel channel = context.read<ConnectionModel>().getChannel();
+      final StreamController streamController = StreamController();
+      streamController.addStream(channel.stream);
 
-        );
-      });
-    },);
+      if (!streamController.hasListener) {
+        streamController.stream.listen((event) {
+          final MessageModel model = context.read<MessageModel>();
+          model.addMessage(Message(event, MessageSource.received));
+          setState(() {});
+        },
+        onDone: () {
+          if (mounted) {
+            showDialog(context: context, builder: (context) {
+              return AlertDialog(
+                title: const Text("Aviso"),
+                content: Text("Conexão encerrada\n\nCódigo:${channel.closeCode}\nMotivo:${channel.closeReason}"),
 
+              );
+            });
+          }
+        });
+      }
+    } catch (e) {
+      context.read<MessageModel>().addMessage(Message("[DEBUG] Erro: ${e.toString()}", MessageSource.received));
+    }
   }
 
   @override
@@ -56,6 +70,30 @@ class _ChatViewState extends State<ChatView> {
       appBar: AppBar(
         title: const Text("Echo Websocket Demo", style: TextStyle(color: Color(0xFFDDDDDD))),
         backgroundColor: const Color(0xFF132443),
+        iconTheme: const IconThemeData(color: Color(0xFFDDDDDD)),
+      ),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF252525),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              child: Text("Menu", style: TextStyle(color: Color(0xFFDDDDDD))),
+            ),
+            ListTile(
+              title: const Text("Home", style: TextStyle(color: Color(0xFFDDDDDD))),
+              onTap: () {
+                GoRouter.of(context).pushReplacement(FEWRouter.chatView);
+              },
+            ),
+            ListTile(
+              title: const Text("Config", style: TextStyle(color: Color(0xFFDDDDDD))),
+              onTap: () {
+                GoRouter.of(context).pushReplacement(FEWRouter.configView);
+              },
+            )
+          ],
+        ),
       ),
       backgroundColor: const Color(0xFF252525),
       body: SafeArea(
