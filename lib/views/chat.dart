@@ -120,6 +120,7 @@ class _ChatViewState extends State<ChatView> {
                         child: Center(
                           child: TextField(
                             controller: _controller,
+                            onSubmitted: (value) => sendMessage(),
                             style: const TextStyle(
                               color: Color(0xFFDDDDDD),
                             ),

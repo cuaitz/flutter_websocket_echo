@@ -14,6 +14,41 @@ class ConfigView extends StatefulWidget {
 class _ConfigViewState extends State<ConfigView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _inputController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    _inputController.text = Provider.of<ConnectionModel>(context, listen: false).getUrl();
+  }
+
+  void submit() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
+        showDialog(context: context, builder: (context) {
+          return AlertDialog(
+            title: Text("Sucesso"),
+            content: Text("Alterações salvas com sucesso."),
+            actions: [
+              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Ok"))
+            ]
+          );
+        }).then((value) {
+          GoRouter.of(context).pushReplacement(FEWRouter.chatView);
+        });
+      } catch (e) {
+        showDialog(context: context, builder: (context) {
+          return AlertDialog(
+            title: Text("Erro"),
+            content: Text("Erro ao salvar: ${e.toString()}"),
+            actions: [
+              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Ok"))
+            ]
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +106,11 @@ class _ConfigViewState extends State<ConfigView> {
                           style: const TextStyle(
                             color: Color(0xFFDDDDDD),
                           ),
+                          onFieldSubmitted: (value) => submit(),
                           decoration: const InputDecoration(
                             isDense: true,
                             contentPadding: EdgeInsets.fromLTRB(15, 0, 15, 0),
-                            hintText: "Mensagem",
+                            hintText: "wss://echo.websocket.events",
                             hintStyle: TextStyle(
                               color: Color(0xFF909090)
                             ),
@@ -95,28 +131,7 @@ class _ConfigViewState extends State<ConfigView> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    try {
-                      Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
-                      showDialog(context: context, builder: (context) {
-                        return const AlertDialog(
-                          title: Text("Sucesso"),
-                          content: Text("Alterações salvas com sucesso."),
-                        );
-                      }).then((value) {
-                        GoRouter.of(context).pushReplacement(FEWRouter.chatView);
-                      });
-                    } catch (e) {
-                      showDialog(context: context, builder: (context) {
-                        return AlertDialog(
-                          title: const Text("Erro"),
-                          content: Text("Erro ao salvar: ${e.toString()}"),
-                        );
-                      });
-                    }
-                  }
-                },
+                onPressed: submit,
                 child: const Text("Salvar"))
             ],
           ),

@@ -22,6 +22,10 @@ class ConnectionModel extends ChangeNotifier {
     return _channel;
   }
 
+  String getUrl() {
+    return _websocketUri.toString();
+  }
+
   bool isOpen() {
     return _channel.closeCode != null;
   }
