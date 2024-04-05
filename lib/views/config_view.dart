@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'package:websocket_echo/model/connection_model.dart';
 import 'package:websocket_echo/routes.dart';
 
 class ConfigView extends StatefulWidget {
@@ -18,19 +16,19 @@ class _ConfigViewState extends State<ConfigView> {
   @override
   void initState() {
     super.initState();
-    _inputController.text = Provider.of<ConnectionModel>(context, listen: false).getUrl();
+    // _inputController.text = Provider.of<ConnectionModel>(context, listen: false).getUrl();
   }
 
   void submit() async {
     if (_formKey.currentState!.validate()) {
       try {
-        Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
+        // Provider.of<ConnectionModel>(context, listen: false).setUri(Uri.parse(_inputController.text));
         showDialog(context: context, builder: (context) {
           return AlertDialog(
-            title: Text("Sucesso"),
-            content: Text("Alterações salvas com sucesso."),
+            title: const Text("Sucesso"),
+            content: const Text("Alterações salvas com sucesso."),
             actions: [
-              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Ok"))
+              ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text("Ok"))
             ]
           );
         }).then((value) {
@@ -39,10 +37,10 @@ class _ConfigViewState extends State<ConfigView> {
       } catch (e) {
         showDialog(context: context, builder: (context) {
           return AlertDialog(
-            title: Text("Erro"),
+            title: const Text("Erro"),
             content: Text("Erro ao salvar: ${e.toString()}"),
             actions: [
-              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Ok"))
+              ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text("Ok"))
             ]
           );
         });

@@ -1,9 +1,8 @@
-import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:websocket_echo/model/connection_model.dart';
 import 'package:websocket_echo/model/message.dart';
 import 'package:websocket_echo/model/message_model.dart';
@@ -27,7 +26,7 @@ class _ChatViewState extends State<ChatView> {
     final MessageModel model = context.read<MessageModel>();
     model.addMessage(Message(text, MessageSource.sent, DateTime.now()));
     
-    context.read<ConnectionModel>().getChannel().sink.add(text);
+    // context.read<ConnectionModel>().getChannel().sink.add(text);
 
     _controller.clear();
   }
@@ -36,29 +35,34 @@ class _ChatViewState extends State<ChatView> {
   void initState() {
     super.initState();
     try {
-      context.read<ConnectionModel>().connect();
-      final WebSocketChannel channel = context.read<ConnectionModel>().getChannel();
-      final StreamController streamController = StreamController();
-      streamController.addStream(channel.stream);
+      final connectionModel = context.read<ConnectionModel>();
+      connectionModel.connect();
+      connectionModel.setEventCallback('my-event', (event) {
+        context.read<MessageModel>().addMessage(Message((json.decode(event.data) as Map<String, dynamic>)['message'], MessageSource.received, DateTime.now()));
+      });
+      return;
+      // final WebSocketChannel channel = context.read<ConnectionModel>().getChannel();
+      // final StreamController streamController = StreamController();
+      // streamController.addStream(channel.stream);
 
-      if (!streamController.hasListener) {
-        streamController.stream.listen((event) {
-          final MessageModel model = context.read<MessageModel>();
-          model.addMessage(Message(event, MessageSource.received, DateTime.now()));
-          setState(() {});
-        },
-        onDone: () {
-          if (mounted) {
-            showDialog(context: context, builder: (context) {
-              return AlertDialog(
-                title: const Text("Aviso"),
-                content: Text("Conexão encerrada\n\nCódigo:${channel.closeCode}\nMotivo:${channel.closeReason}"),
+      // if (!streamController.hasListener) {
+      //   streamController.stream.listen((event) {
+      //     final MessageModel model = context.read<MessageModel>();
+      //     model.addMessage(Message(event, MessageSource.received, DateTime.now()));
+      //     setState(() {});
+      //   },
+      //   onDone: () {
+      //     if (mounted) {
+      //       showDialog(context: context, builder: (context) {
+      //         return AlertDialog(
+      //           title: const Text("Aviso"),
+      //           content: Text("Conexão encerrada\n\nCódigo:${channel.closeCode}\nMotivo:${channel.closeReason}"),
 
-              );
-            });
-          }
-        });
-      }
+      //         );
+      //       });
+      //     }
+      //   });
+      // }
     } catch (e) {
       context.read<MessageModel>().addMessage(Message("[DEBUG] Erro: ${e.toString()}", MessageSource.received, DateTime.now()));
     }

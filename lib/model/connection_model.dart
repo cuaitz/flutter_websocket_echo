@@ -1,32 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:dart_pusher_channels/dart_pusher_channels.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ConnectionModel extends ChangeNotifier {
-  Uri _websocketUri = Uri.parse("wss://echo.websocket.events");  // Default
-  late WebSocketChannel _channel;
-  
+  late final PublicChannel _channel;
+
   ConnectionModel() {
     connect();
   }
 
-  void connect() {
-    _channel = WebSocketChannel.connect(_websocketUri);
+  void connect() async {
+    final hostOptions = PusherChannelsOptions.fromCluster(
+      scheme: 'wss',
+      cluster: 'sa1',
+      key: dotenv.env['API_KEY']!
+    );
+
+    final client = PusherChannelsClient.websocket(
+        options: hostOptions,
+        connectionErrorHandler: (exception, trace, refresh) async {
+            print(exception);
+            refresh();
+        });
+    
+    _channel = client.publicChannel('my-channel');
+
+    client.onConnectionEstablished.listen((_) {
+        _channel.subscribeIfNotUnsubscribed();
+    });
+
+    client.connect();
   }
 
-  void setUri(Uri uri) {
-    _websocketUri = uri;
-    connect();
-  }
-
-  WebSocketChannel getChannel() {
-    return _channel;
-  }
-
-  String getUrl() {
-    return _websocketUri.toString();
-  }
-
-  bool isOpen() {
-    return _channel.closeCode != null;
+  void setEventCallback(String eventName, void Function(ChannelReadEvent event) callback) {
+    _channel.bind(eventName).listen(callback);
   }
 }
